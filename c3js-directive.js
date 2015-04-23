@@ -20,6 +20,7 @@ angular.module('gridshore.c3js.chart', [])
 	$scope.gauge = null;
 	$scope.jsonKeys = null;
 	$scope.groups = null;
+  	$scope.config = {};
 
 	function resetVars() {
 		$scope.chart = null;
@@ -41,12 +42,13 @@ angular.module('gridshore.c3js.chart', [])
 		$scope.gauge = null;
 		$scope.jsonKeys = null;
 		$scope.groups = null;
+		$scope.config = {};
 	};
 
 	resetVars();
 
 	this.showGraph = function() {
-		var config = {};
+		var config = $scope.config;
 		config.bindto = "#"+$scope.bindto;
 		config.data = {};
 
@@ -75,10 +77,10 @@ angular.module('gridshore.c3js.chart', [])
 		}
 		if ($scope.showLabels && $scope.showLabels === "true") {
 			config.data.labels=true;
-		}
 		if ($scope.groups != null) {
 			config.data.groups = $scope.groups;
 		}
+
 		if ($scope.showSubchart && $scope.showSubchart === "true") {
 			config.subchart = {"show":true};
 		}
@@ -240,6 +242,12 @@ angular.module('gridshore.c3js.chart', [])
 		$scope.groups.push(group);
 	};
 
+	this.addConfig = function(group, key, v) {
+	  obj = {};
+	  obj[key] = v;
+	  $scope.config[group] = obj;
+	};
+
 	this.hideGridFocus = function() {
 		if ($scope.grid == null) {
 			$scope.grid = {};
@@ -289,8 +297,6 @@ angular.module('gridshore.c3js.chart', [])
 		$scope.config.data.json = $scope.chartData;
 
 		$scope.chart = c3.generate($scope.config);
-
-		// $scope.chart.load(data);
 	}
 }])
 .directive('c3chart', ['$timeout', function($timeout) {
@@ -754,4 +760,24 @@ angular.module('gridshore.c3js.chart', [])
 		replace: true,
 		link: gaugeLinker
 	};
-});
+})
+.directive('chartConfig', function() {
+  var configLinker = function(scope,element,attrs,chartCtrl) {
+    angular.forEach(attrs.$attr, function(k,v) {
+      console.log(k,v);
+      pieces = k.split('-');
+      chartCtrl.addConfig(pieces[0], pieces[1], attrs[v]);
+    });
+  };
+
+  return {
+    "require":"^c3chart",
+    "restrict":"E",
+    "scope": {
+      "colorFunction": "&"
+    },
+    "replace":true,
+    "link": configLinker
+  };
+})
+;
